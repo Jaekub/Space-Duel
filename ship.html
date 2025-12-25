@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpaceShip Duel - Split-Screen Battle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background: #0a0a2a;
+            color: #00ffcc;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-container {
+            width: 900px;
+            height: 600px;
+            border: 3px solid #00ffcc;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 900px;
+        }
+        
+        h1 {
+            color: #ff3366;
+            font-size: 2.8rem;
+            text-shadow: 0 0 10px rgba(255, 51, 102, 0.7);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #ffff66;
+            font-size: 1.2rem;
+        }
+        
+        .split-screen {
+            display: flex;
+            height: 100%;
+            position: relative;
+        }
+        
+        .player-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-1-area {
+            border-right: 2px dashed #00ffcc;
+        }
+        
+        .player-2-area {
+            border-left: 2px dashed #00ffcc;
+        }
+        
+        .player-label {
+            position: absolute;
+            top: 10px;
+            z-index: 10;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 4px;
+        }
+        
+        .player-1-label {
+            left: 10px;
+            color: #ff3366;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .player-2-label {
+            right: 10px;
+            color: #3366ff;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        .game-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000022;
+        }
+        
+        .divider {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 100%;
+            width: 4px;
+            background-color: #00ffcc;
+            box-shadow: 0 0 10px #00ffcc;
+        }
+        
+        .health-bar {
+            position: absolute;
+            bottom: 15px;
+            height: 20px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .player-1-health {
+            left: 15px;
+            right: 15px;
+        }
+        
+        .player-2-health {
+            left: 15px;
+            right: 15px;
+        }
+        
+        .health-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .health-fill-1 {
+            background-color: #ff3366;
+            width: 100%;
+        }
+        
+        .health-fill-2 {
+            background-color: #3366ff;
+            width: 100%;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            width: 900px;
+            margin-top: 20px;
+        }
+        
+        .player-controls {
+            width: 48%;
+            padding: 15px;
+            border: 2px solid;
+            border-radius: 8px;
+            background-color: rgba(0, 0, 30, 0.8);
+        }
+        
+        .player-1-controls {
+            border-color: #ff3366;
+        }
+        
+        .player-2-controls {
+            border-color: #3366ff;
+        }
+        
+        .control-title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .control-keys {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .key {
+            background-color: #222244;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .key-space {
+            width: 120px;
+        }
+        
+        .game-status {
+            margin-top: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            height: 30px;
+            color: #ffff66;
+        }
+        
+        .restart-btn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background-color: #ff3366;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            background-color: #ff0044;
+            transform: scale(1.05);
+        }
+        
+        .instructions {
+            width: 900px;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(0, 20, 40, 0.8);
+            border-radius: 8px;
+            border: 1px solid #00aaff;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 950px) {
+            .game-container, .game-header, .controls, .instructions {
+                width: 95vw;
+            }
+            
+            .game-container {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-header">
+        <h1>SPACESHIP DUEL</h1>
+        <p class="subtitle">Split-Screen 2D Battle - First to 5 wins!</p>
+    </div>
+    
+    <div class="game-container">
+        <div class="split-screen">
+            <div class="player-area player-1-area">
+                <div class="player-label player-1-label">PLAYER 1</div>
+                <div class="health-bar player-1-health">
+                    <div class="health-fill health-fill-1" id="health-1"></div>
+                </div>
+                <canvas id="canvas-player1" class="game-canvas"></canvas>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="player-area player-2-area">
+                <div class="player-label player-2-label">PLAYER 2</div>
+                <div class="health-bar player-2-health">
+                    <div class="health-fill health-fill-2" id="health-2"></div>
+                </div>
+                <canvas id="canvas-player2" class="game-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="game-status" id="game-status">First to shoot the opponent 5 times wins!</div>
+    
+    <div class="controls">
+        <div class="player-controls player-1-controls">
+            <div class="control-title" style="color: #ff3366;">PLAYER 1 CONTROLS</div>
+            <div class="control-keys">
+                <div class="key">W</div>
+                <div class="key">A</div>
+                <div class="key">S</div>
+                <div class="key">D</div>
+                <div class="key key-space">SPACE</div>
+            </div>
+            <div style="text-align: center; margin-top: 8px; font-size: 0.9rem;">
+                Move: WASD | Shoot: SPACE
+            </div>
+        </div>
+        
+        <div class="player-controls player-2-controls">
+            <div class="control-title" style="color: #3366ff;">PLAYER 2 CONTROLS</div>
+            <div class="control-keys">
+                <div class="key">↑</div>
+                <div class="key">←</div>
+                <div class="key">↓</div>
+                <div class="key">→</div>
+                <div class="key">ENTER</div>
+            </div>
+            <div style="text-align: center; margin-top: 8px; font-size: 0.9rem;">
+                Move: ARROWS | Shoot: ENTER
+            </div>
+        </div>
+    </div>
+    
+    <button class="restart-btn" id="restart-btn">RESTART GAME</button>
+    
+    <div class="instructions">
+        <strong>How to play:</strong> Each player controls a spaceship in their own half of the screen. 
+        Shoot projectiles at your opponent to reduce their health. First player to defeat their opponent 
+        5 times wins the match. Avoid getting hit by your opponent's projectiles!
+    </div>
+
+    <script>
+        // Game configuration
+        const config = {
+            canvasWidth: 900,
+            canvasHeight: 600,
+            playerSize: 20,
+            playerSpeed: 5,
+            projectileSpeed: 8,
+            projectileSize: 5,
+            fireCooldown: 20, // frames between shots
+            maxHealth: 100,
+            respawnTime: 60, // frames before respawn after death
+            pointsToWin: 5,
+            barrierWidth: 20
+        };
+
+        // Game state - will be fully reset in initGame
+        let gameState = {};
+
+        // Get canvas elements
+        const canvas1 = document.getElementById('canvas-player1');
+        const canvas2 = document.getElementById('canvas-player2');
+        const ctx1 = canvas1.getContext('2d');
+        const ctx2 = canvas2.getContext('2d');
+        
+        // Set canvas dimensions
+        canvas1.width = config.canvasWidth / 2;
+        canvas1.height = config.canvasHeight;
+        canvas2.width = config.canvasWidth / 2;
+        canvas2.height = config.canvasHeight;
+        
+        // Make canvases focusable
+        canvas1.tabIndex = 1;
+        canvas2.tabIndex = 2;
+        canvas1.style.outline = 'none';
+        canvas2.style.outline = 'none';
+        
+        // UI elements
+        const healthBar1 = document.getElementById('health-1');
+        const healthBar2 = document.getElementById('health-2');
+        const gameStatus = document.getElementById('game-status');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Initialize game - COMPLETELY RESET EVERYTHING
+        function initGame() {
+            // Create fresh game state
+            gameState = {
+                player1: {
+                    x: config.canvasWidth / 4,
+                    y: config.canvasHeight / 2,
+                    velocityX: 0,
+                    velocityY: 0,
+                    health: config.maxHealth, // FULL HEALTH
+                    color: '#ff3366',
+                    cooldown: 0,
+                    isAlive: true,
+                    respawnTimer: 0,
+                    score: 0,
+                    keys: {
+                        up: false,
+                        down: false,
+                        left: false,
+                        right: false,
+                        shoot: false
+                    }
+                },
+                player2: {
+                    x: config.canvasWidth * 3/4,
+                    y: config.canvasHeight / 2,
+                    velocityX: 0,
+                    velocityY: 0,
+                    health: config.maxHealth, // FULL HEALTH
+                    color: '#3366ff',
+                    cooldown: 0,
+                    isAlive: true,
+                    respawnTimer: 0,
+                    score: 0,
+                    keys: {
+                        up: false,
+                        down: false,
+                        left: false,
+                        right: false,
+                        shoot: false
+                    }
+                },
+                projectiles: [],
+                gameRunning: true,
+                winner: null
+            };
+            
+            // Update UI
+            updateHealthBars();
+            updateGameStatus();
+            
+            // Reset velocity
+            updatePlayerVelocity(gameState.player1);
+            updatePlayerVelocity(gameState.player2);
+            
+            // Return focus to the game
+            canvas1.focus();
+        }
+
+        // Update health bar displays
+        function updateHealthBars() {
+            healthBar1.style.width = `${(gameState.player1.health / config.maxHealth) * 100}%`;
+            healthBar2.style.width = `${(gameState.player2.health / config.maxHealth) * 100}%`;
+        }
+
+        // Update game status text
+        function updateGameStatus() {
+            if (gameState.winner) {
+                gameStatus.textContent = `PLAYER ${gameState.winner} WINS THE MATCH!`;
+                return;
+            }
+            
+            if (!gameState.gameRunning) {
+                gameStatus.textContent = "GAME OVER!";
+                return;
+            }
+            
+            gameStatus.textContent = `Player 1: ${gameState.player1.score} | Player 2: ${gameState.player2.score} - First to ${config.pointsToWin} wins!`;
+        }
+
+        // Draw a player ship
+        function drawShip(ctx, player, isPlayer1) {
+            if (!player.isAlive) return;
+            
+            ctx.save();
+            
+            // Draw ship body
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            
+            // Player 1 faces right, Player 2 faces left
+            if (isPlayer1) {
+                // Player 1 faces right
+                ctx.moveTo(player.x + config.playerSize, player.y);
+                ctx.lineTo(player.x - config.playerSize, player.y - config.playerSize/2);
+                ctx.lineTo(player.x - config.playerSize, player.y + config.playerSize/2);
+            } else {
+                // Player 2 faces left (opposite direction)
+                ctx.moveTo(player.x - config.playerSize, player.y);
+                ctx.lineTo(player.x + config.playerSize, player.y - config.playerSize/2);
+                ctx.lineTo(player.x + config.playerSize, player.y + config.playerSize/2);
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Draw ship details (engine on back side)
+            ctx.fillStyle = '#ffff99';
+            ctx.beginPath();
+            if (isPlayer1) {
+                // Player 1 engine on left side
+                ctx.arc(player.x - config.playerSize/2, player.y, config.playerSize/4, 0, Math.PI * 2);
+            } else {
+                // Player 2 engine on right side
+                ctx.arc(player.x + config.playerSize/2, player.y, config.playerSize/4, 0, Math.PI * 2);
+            }
+            ctx.fill();
+            
+            // Draw engine glow
+            if (player.velocityX !== 0 || player.velocityY !== 0) {
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                if (isPlayer1) {
+                    // Player 1 glow on left
+                    ctx.ellipse(
+                        player.x - config.playerSize, 
+                        player.y, 
+                        config.playerSize/2, 
+                        config.playerSize/4, 
+                        0, 0, Math.PI * 2
+                    );
+                } else {
+                    // Player 2 glow on right
+                    ctx.ellipse(
+                        player.x + config.playerSize, 
+                        player.y, 
+                        config.playerSize/2, 
+                        config.playerSize/4, 
+                        0, 0, Math.PI * 2
+                    );
+                }
+                ctx.fill();
+            }
+            
+            // Draw player indicator
+            ctx.fillStyle = player.color;
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(isPlayer1 ? 'P1' : 'P2', player.x, player.y - config.playerSize - 5);
+            
+            ctx.restore();
+        }
+
+        // Draw projectiles
+        function drawProjectile(ctx, projectile) {
+            ctx.save();
+            
+            // Draw projectile
+            ctx.fillStyle = projectile.color;
+            ctx.beginPath();
+            ctx.arc(projectile.x, projectile.y, config.projectileSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw trail
+            ctx.fillStyle = '#ffff99';
+            ctx.beginPath();
+            ctx.arc(projectile.x - projectile.dx * 2, projectile.y - projectile.dy * 2, config.projectileSize/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        // Draw the game for a specific player's perspective
+        function drawGame(ctx, isPlayer1) {
+            // Clear canvas with space background
+            ctx.fillStyle = '#000022';
+            ctx.fillRect(0, 0, config.canvasWidth/2, config.canvasHeight);
+            
+            // Draw stars
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * config.canvasWidth/2;
+                const y = Math.random() * config.canvasHeight;
+                const size = Math.random() * 2;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw projectiles visible to this player
+            gameState.projectiles.forEach(projectile => {
+                // Only draw projectiles that are on this player's side
+                if ((isPlayer1 && projectile.x <= config.canvasWidth/2) || 
+                    (!isPlayer1 && projectile.x > config.canvasWidth/2)) {
+                    
+                    // Adjust x coordinate for split-screen
+                    let drawX = projectile.x;
+                    if (!isPlayer1) {
+                        // Player 2 sees right half - subtract half width to position in canvas
+                        drawX = projectile.x - config.canvasWidth/2;
+                    }
+                    
+                    // Create a copy of the projectile with adjusted coordinates
+                    const adjustedProjectile = {
+                        ...projectile,
+                        x: drawX,
+                        y: projectile.y
+                    };
+                    
+                    drawProjectile(ctx, adjustedProjectile);
+                }
+            });
+            
+            // Draw player in their own box only
+            if (isPlayer1) {
+                // Draw player 1 in player 1's box (left side)
+                // No x adjustment needed for P1 since canvas shows left half
+                drawShip(ctx, gameState.player1, true);
+            } else {
+                // Draw player 2 in player 2's box (right side)
+                // Create a copy with adjusted x position for P2 canvas
+                const player2Copy = {...gameState.player2};
+                // P2 canvas shows right half, so subtract half width
+                player2Copy.x = player2Copy.x - config.canvasWidth/2;
+                drawShip(ctx, player2Copy, false);
+            }
+        }
+
+        // Update game logic
+        function updateGame() {
+            if (!gameState.gameRunning) return;
+            
+            // Update player positions
+            updatePlayer(gameState.player1);
+            updatePlayer(gameState.player2);
+            
+            // Update projectiles
+            updateProjectiles();
+            
+            // Update cooldowns
+            if (gameState.player1.cooldown > 0) gameState.player1.cooldown--;
+            if (gameState.player2.cooldown > 0) gameState.player2.cooldown--;
+            
+            // Update respawn timers
+            if (!gameState.player1.isAlive && gameState.player1.respawnTimer > 0) {
+                gameState.player1.respawnTimer--;
+                if (gameState.player1.respawnTimer === 0) {
+                    respawnPlayer(gameState.player1, true);
+                }
+            }
+            
+            if (!gameState.player2.isAlive && gameState.player2.respawnTimer > 0) {
+                gameState.player2.respawnTimer--;
+                if (gameState.player2.respawnTimer === 0) {
+                    respawnPlayer(gameState.player2, false);
+                }
+            }
+            
+            // Check for win condition
+            if (gameState.player1.score >= config.pointsToWin) {
+                gameState.winner = 1;
+                gameState.gameRunning = false;
+            } else if (gameState.player2.score >= config.pointsToWin) {
+                gameState.winner = 2;
+                gameState.gameRunning = false;
+            }
+            
+            // Update UI
+            updateHealthBars();
+            updateGameStatus();
+        }
+
+        // Update a player's position and handle shooting
+        function updatePlayer(player) {
+            if (!player.isAlive) return;
+            
+            // Apply velocity
+            player.x += player.velocityX;
+            player.y += player.velocityY;
+            
+            // Keep player within their own box and prevent crossing middle barrier
+            const middleLine = config.canvasWidth / 2;
+            
+            if (player === gameState.player1) {
+                // Player 1 stays in left box
+                const leftBoundary = config.playerSize;
+                const rightBoundary = middleLine - config.playerSize;
+                player.x = Math.max(leftBoundary, Math.min(rightBoundary, player.x));
+            } else {
+                // Player 2 stays in right box
+                const leftBoundary = middleLine + config.playerSize;
+                const rightBoundary = config.canvasWidth - config.playerSize;
+                player.x = Math.max(leftBoundary, Math.min(rightBoundary, player.x));
+            }
+            
+            // Vertical boundaries
+            player.y = Math.max(config.playerSize, Math.min(config.canvasHeight - config.playerSize, player.y));
+            
+            // Handle shooting
+            if (player.keys.shoot && player.cooldown === 0) {
+                shootProjectile(player);
+                player.cooldown = config.fireCooldown;
+            }
+        }
+
+        // Create a new projectile
+        function shootProjectile(player) {
+            const isPlayer1 = player === gameState.player1;
+            
+            gameState.projectiles.push({
+                x: isPlayer1 ? player.x + config.playerSize : player.x - config.playerSize,
+                y: player.y,
+                dx: isPlayer1 ? config.projectileSpeed : -config.projectileSpeed,
+                dy: 0,
+                color: player.color,
+                owner: isPlayer1 ? 'player1' : 'player2'
+            });
+        }
+
+        // Update all projectiles and check for collisions
+        function updateProjectiles() {
+            for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
+                const projectile = gameState.projectiles[i];
+                
+                // Update position
+                projectile.x += projectile.dx;
+                projectile.y += projectile.dy;
+                
+                // Remove projectiles that go off screen
+                if (projectile.x < 0 || projectile.x > config.canvasWidth || 
+                    projectile.y < 0 || projectile.y > config.canvasHeight) {
+                    gameState.projectiles.splice(i, 1);
+                    continue;
+                }
+                
+                // Check collision with player 1
+                if (projectile.owner === 'player2' && 
+                    gameState.player1.isAlive &&
+                    gameState.player1.health > 0 && // SAFETY CHECK
+                    checkCollision(projectile, gameState.player1)) {
+                    
+                    gameState.player1.health -= 25;
+                    gameState.projectiles.splice(i, 1);
+                    
+                    if (gameState.player1.health <= 0) {
+                        gameState.player1.isAlive = false;
+                        gameState.player1.respawnTimer = config.respawnTime;
+                        gameState.player2.score++;
+                    }
+                    continue;
+                }
+                
+                // Check collision with player 2
+                if (projectile.owner === 'player1' && 
+                    gameState.player2.isAlive &&
+                    gameState.player2.health > 0 && // SAFETY CHECK
+                    checkCollision(projectile, gameState.player2)) {
+                    
+                    gameState.player2.health -= 25;
+                    gameState.projectiles.splice(i, 1);
+                    
+                    if (gameState.player2.health <= 0) {
+                        gameState.player2.isAlive = false;
+                        gameState.player2.respawnTimer = config.respawnTime;
+                        gameState.player1.score++;
+                    }
+                }
+            }
+        }
+
+        // Check collision between a projectile and a player
+        function checkCollision(projectile, player) {
+            const dx = projectile.x - player.x;
+            const dy = projectile.y - player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            return distance < config.playerSize + config.projectileSize;
+        }
+
+        // Respawn a player
+        function respawnPlayer(player, isPlayer1) {
+            player.isAlive = true;
+            player.health = config.maxHealth;
+            player.x = isPlayer1 ? config.canvasWidth / 4 : config.canvasWidth * 3/4;
+            player.y = config.canvasHeight / 2;
+        }
+
+        // Handle keyboard input
+        function handleKeyDown(e) {
+            // Player 1 controls (WASD + Space)
+            if (e.key === 'w' || e.key === 'W') gameState.player1.keys.up = true;
+            if (e.key === 's' || e.key === 'S') gameState.player1.keys.down = true;
+            if (e.key === 'a' || e.key === 'A') gameState.player1.keys.left = true;
+            if (e.key === 'd' || e.key === 'D') gameState.player1.keys.right = true;
+            if (e.key === ' ') {
+                gameState.player1.keys.shoot = true;
+                e.preventDefault(); // Prevent space from scrolling or activating buttons
+            }
+            
+            // Player 2 controls (Arrow keys + Enter)
+            if (e.key === 'ArrowUp') gameState.player2.keys.up = true;
+            if (e.key === 'ArrowDown') gameState.player2.keys.down = true;
+            if (e.key === 'ArrowLeft') gameState.player2.keys.left = true;
+            if (e.key === 'ArrowRight') gameState.player2.keys.right = true;
+            if (e.key === 'Enter') {
+                gameState.player2.keys.shoot = true;
+                e.preventDefault(); // Prevent Enter from activating buttons
+            }
+            
+            updatePlayerVelocity(gameState.player1);
+            updatePlayerVelocity(gameState.player2);
+        }
+
+        function handleKeyUp(e) {
+            // Player 1 controls (WASD + Space)
+            if (e.key === 'w' || e.key === 'W') gameState.player1.keys.up = false;
+            if (e.key === 's' || e.key === 'S') gameState.player1.keys.down = false;
+            if (e.key === 'a' || e.key === 'A') gameState.player1.keys.left = false;
+            if (e.key === 'd' || e.key === 'D') gameState.player1.keys.right = false;
+            if (e.key === ' ') {
+                gameState.player1.keys.shoot = false;
+                e.preventDefault(); // Also prevent on key up
+            }
+            
+            // Player 2 controls (Arrow keys + Enter)
+            if (e.key === 'ArrowUp') gameState.player2.keys.up = false;
+            if (e.key === 'ArrowDown') gameState.player2.keys.down = false;
+            if (e.key === 'ArrowLeft') gameState.player2.keys.left = false;
+            if (e.key === 'ArrowRight') gameState.player2.keys.right = false;
+            if (e.key === 'Enter') {
+                gameState.player2.keys.shoot = false;
+                e.preventDefault(); // Also prevent on key up
+            }
+            
+            updatePlayerVelocity(gameState.player1);
+            updatePlayerVelocity(gameState.player2);
+        }
+
+        // Update player velocity based on keys pressed
+        function updatePlayerVelocity(player) {
+            player.velocityX = 0;
+            player.velocityY = 0;
+            
+            if (player.keys.up) player.velocityY = -config.playerSpeed;
+            if (player.keys.down) player.velocityY = config.playerSpeed;
+            if (player.keys.left) player.velocityX = -config.playerSpeed;
+            if (player.keys.right) player.velocityX = config.playerSpeed;
+        }
+
+        // Game loop
+        function gameLoop() {
+            updateGame();
+            drawGame(ctx1, true);
+            drawGame(ctx2, false);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        restartBtn.addEventListener('click', function() {
+            initGame();
+            // Return focus to the game window
+            canvas1.focus();
+        });
+
+        // Start the game
+        initGame();
+        gameLoop();
+    </script>
+</body>
+</html>
