@@ -2,7 +2,7 @@
 
 A 2-player split-screen spaceship battle game built with HTML, CSS, and JavaScript.
 
-**Play Now:** [Jaekub.github.io/Space-Duel](https://Jaekub.github.io/Space-Duel)
+**Play Now:** [Jaekub.github.io/space-duel](https://Jaekub.github.io/space-duel)
 
 ## 🎮 How to Play
 
