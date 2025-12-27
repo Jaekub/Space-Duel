@@ -4,6 +4,8 @@ A 2-player split-screen spaceship battle game built with HTML, CSS, and JavaScri
 
 **Play Now:** [https://jaekub.github.io/Space-Duel/](https://jaekub.github.io/Space-Duel/)
 
+!!! Only compatible for PC !!!
+
 ## 🎮 How to Play
 
 Two players battle on the same computer in split screen. First to 5 wins!
