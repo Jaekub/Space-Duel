@@ -784,7 +784,12 @@
             requestAnimationFrame(gameLoop);
         }
 
+        // Concise fix: only prevent scroll on arrow keys (the only ones causing issues)
+        const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+
         document.addEventListener('keydown', e => {
+            if (arrowKeys.includes(e.key)) e.preventDefault();
+
             if (['w','W'].includes(e.key)) gameState.player1.keys.up = true;
             if (['s','S'].includes(e.key)) gameState.player1.keys.down = true;
             if (['a','A'].includes(e.key)) gameState.player1.keys.left = true;
@@ -799,6 +804,8 @@
         });
 
         document.addEventListener('keyup', e => {
+            if (arrowKeys.includes(e.key)) e.preventDefault();
+
             if (['w','W'].includes(e.key)) gameState.player1.keys.up = false;
             if (['s','S'].includes(e.key)) gameState.player1.keys.down = false;
             if (['a','A'].includes(e.key)) gameState.player1.keys.left = false;
