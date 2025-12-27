@@ -1,4 +1,4 @@
-# 🚀 SpaceShip Duel - Split-Screen Battle
+# 🚀 Space Duel
 
 A 2-player split-screen spaceship battle game built with HTML, CSS, and JavaScript.
 
@@ -6,25 +6,15 @@ A 2-player split-screen spaceship battle game built with HTML, CSS, and JavaScri
 
 ## 🎮 How to Play
 
-Two players battle on the same computer. First to 5 wins!
+Two players battle on the same computer in split screen. First to 5 wins!
 
-### Controls:
 - **Player 1 (Red Ship):** W A S D to move, SPACE to shoot
 - **Player 2 (Blue Ship):** Arrow keys to move, ENTER to shoot
 
 ### Game Rules:
-1. Each player stays in their own half of the screen
-2. Shoot projectiles to reduce opponent's health
-3. When health reaches 0, you lose a point and respawn
-4. First player to get 5 points wins
-
-## 🛠️ Features
-- Split-screen view for each player
-- Ships face each other (P1 → right, P2 ← left)
-- Health bars and score tracking
-- Projectiles pass through the middle
-- Players cannot cross to the other side
-- Restart button to reset the game
+1. Shoot projectiles to reduce opponent's health
+2. When health reaches 0, you lose and respawn
+3. First player to get 5 points wins
 
 ## 📁 Files
 - `index.html` - Contains all game code (HTML, CSS, JavaScript)
