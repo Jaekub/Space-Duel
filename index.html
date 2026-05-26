@@ -5,834 +5,1052 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Space Duel</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Courier New', monospace;
         }
-        
+
+        :root {
+            --p1: #ff3366;
+            --p2: #33aaff;
+            --accent: #00ffcc;
+            --bg: #060614;
+            --panel: rgba(6, 6, 30, 0.92);
+            --border: rgba(0, 255, 204, 0.25);
+            --glow-p1: rgba(255, 51, 102, 0.6);
+            --glow-p2: rgba(51, 170, 255, 0.6);
+        }
+
         body {
-            background: #0a0a2a;
-            color: #00ffcc;
+            background: var(--bg);
+            color: var(--accent);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding: 16px 12px 24px;
+            font-family: 'Share Tech Mono', monospace;
+            overflow-x: hidden;
         }
-        
+
+        /* Starfield background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+                radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+                radial-gradient(1px 1px at 50% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 90% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+                radial-gradient(1px 1px at 20% 55%, rgba(255,255,255,0.4) 0%, transparent 100%),
+                radial-gradient(1px 1px at 60% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+                radial-gradient(1px 1px at 80% 50%, rgba(255,255,255,0.3) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .main-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 1600px;
+            max-width: 1300px;
+            position: relative;
+            z-index: 1;
+            gap: 10px;
         }
-        
-        .game-section {
+
+        /* HEADER */
+        .game-header {
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            color: var(--p1);
+            text-shadow: 0 0 20px var(--glow-p1), 0 0 60px rgba(255,51,102,0.3);
+            letter-spacing: 6px;
+        }
+
+        h1 span {
+            color: var(--p2);
+            text-shadow: 0 0 20px var(--glow-p2), 0 0 60px rgba(51,170,255,0.3);
+        }
+
+        /* TOOLBAR */
+        .toolbar {
             display: flex;
-            flex-direction: column;
+            gap: 10px;
             align-items: center;
-            width: 900px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        
-        .game-container {
-            width: 1200px;
-            height: 500px;
-            border: 3px solid #00ffcc;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+
+        .btn {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, var(--p1), #cc0033);
+            color: #fff;
+            box-shadow: 0 0 12px var(--glow-p1);
+        }
+
+        .btn-restart:hover {
+            transform: scale(1.06);
+            box-shadow: 0 0 20px var(--glow-p1);
+        }
+
+        .btn-sound {
+            background: linear-gradient(135deg, #1a1a3a, #0d0d24);
+            color: var(--accent);
+            border: 1px solid var(--border);
+            box-shadow: 0 0 8px rgba(0,255,204,0.2);
+        }
+
+        .btn-sound:hover {
+            transform: scale(1.06);
+            box-shadow: 0 0 14px rgba(0,255,204,0.4);
+        }
+
+        /* SCORE STRIP */
+        .score-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 6px 12px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            min-width: 0;
+        }
+
+        .score-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .player-tag {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+        }
+
+        .tag-1 {
+            color: var(--p1);
+            border: 1.5px solid var(--p1);
+            text-shadow: 0 0 8px var(--glow-p1);
+        }
+
+        .tag-2 {
+            color: var(--p2);
+            border: 1.5px solid var(--p2);
+            text-shadow: 0 0 8px var(--glow-p2);
+        }
+
+        .score-val {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #ffee44;
+            text-shadow: 0 0 10px rgba(255,238,68,0.6);
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .score-sep {
+            font-family: 'Orbitron', monospace;
+            color: rgba(255,255,255,0.2);
+            font-size: 1.2rem;
+        }
+
+        /* HEALTH BARS */
+        .health-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .health-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .health-bar-outer {
+            height: 20px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
             overflow: hidden;
             position: relative;
         }
-        
-        .game-header {
-            text-align: center;
-            margin-bottom: 10px;
+
+        .health-bar-inner {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.25s ease;
         }
-        
-        h1 {
-            color: #ff3366;
-            font-size: 2.8rem;
-            text-shadow: 0 0 15px rgba(255, 51, 102, 0.9);
-            letter-spacing: 2px;
+
+        .h1 { background: linear-gradient(90deg, #cc0033, var(--p1)); box-shadow: 0 0 10px var(--glow-p1); }
+        .h2 { background: linear-gradient(90deg, #0055cc, var(--p2)); box-shadow: 0 0 10px var(--glow-p2); }
+
+        .health-label {
+            position: absolute;
+            top: 50%; right: 8px;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.8);
+            font-weight: bold;
+            pointer-events: none;
         }
-        
+
+        .health-sep {
+            font-size: 0.7rem;
+            color: var(--accent);
+            opacity: 0.5;
+            white-space: nowrap;
+        }
+
+        /* GAME CONTAINER */
+        .game-wrap {
+            width: 100%;
+            position: relative;
+        }
+
+        .game-container {
+            width: 100%;
+            aspect-ratio: 12/5;
+            border: 2px solid rgba(0,255,204,0.4);
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,255,204,0.15), inset 0 0 60px rgba(0,0,40,0.8);
+            overflow: hidden;
+            position: relative;
+            background: #000018;
+        }
+
         .split-screen {
             display: flex;
             height: 100%;
             width: 100%;
             position: relative;
         }
-        
+
         .player-area {
             flex: 1;
             position: relative;
             overflow: hidden;
         }
-        
+
         .game-canvas {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #000022;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             display: block;
         }
-        
+
         .divider {
             position: absolute;
-            top: 0;
-            left: 50%;
+            top: 0; left: 50%;
             transform: translateX(-50%);
             height: 100%;
-            width: 4px;
-            background-color: #00ffcc;
-            box-shadow: 0 0 15px #00ffcc;
+            width: 3px;
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent), 0 0 30px rgba(0,255,204,0.4);
             z-index: 10;
         }
-        
-        .health-display {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-            height: 60px;
-            width: 900px;
-        }
-        
-        .health-wrapper {
-            flex: 1;
+
+        /* COUNTDOWN / WIN OVERLAY */
+        .overlay {
+            position: absolute;
+            inset: 0;
             display: flex;
             flex-direction: column;
-            align-items: center;
-        }
-        
-        .player-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 5px;
-        }
-        
-        .player-tag {
-            font-weight: bold;
-            font-size: 1.2rem;
-            padding: 5px 15px;
-            border-radius: 4px;
-            background-color: rgba(0, 0, 0, 0.7);
-        }
-        
-        .player-1-tag {
-            color: #ff3366;
-            border: 2px solid #ff3366;
-            text-shadow: 0 0 8px rgba(255, 51, 102, 0.7);
-        }
-        
-        .player-2-tag {
-            color: #3366ff;
-            border: 2px solid #3366ff;
-            text-shadow: 0 0 8px rgba(51, 102, 255, 0.7);
-        }
-        
-        .score {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #ffff66;
-            text-shadow: 0 0 8px rgba(255, 255, 102, 0.7);
-        }
-        
-        .health-bar-outer {
-            width: 100%;
-            height: 25px;
-            background-color: rgba(0, 0, 0, 0.6);
-            border-radius: 12px;
-            border: 2px solid #333;
-            overflow: hidden;
-            position: relative;
-            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7);
-        }
-        
-        .health-bar-inner {
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-        
-        .health-1 {
-            background: linear-gradient(90deg, #ff0044, #ff3366);
-            box-shadow: 0 0 12px rgba(255, 51, 102, 0.8);
-        }
-        
-        .health-2 {
-            background: linear-gradient(90deg, #0044ff, #3366ff);
-            box-shadow: 0 0 12px rgba(51, 102, 255, 0.8);
-        }
-        
-        .health-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-weight: bold;
-            font-size: 0.9rem;
-            text-shadow: 1px 1px 3px black;
-        }
-        
-        .game-status {
-            margin-top: 10px;
-            font-size: 1.3rem;
-            text-align: center;
-            height: 40px;
-            color: #ffff66;
-            text-shadow: 0 0 12px rgba(255, 255, 102, 0.7);
-            width: 900px;
-            display: flex;
             align-items: center;
             justify-content: center;
+            background: rgba(0,0,10,0.75);
+            z-index: 50;
+            backdrop-filter: blur(3px);
+            transition: opacity 0.3s;
         }
-        
-        .info-section {
-            margin-top: 20px;
-            width: 900px;
-        }
-        
-        .info-card {
-            background-color: rgba(0, 0, 30, 0.85);
-            border-radius: 8px;
-            padding: 20px;
-            border: 2px solid #00aaff;
-            box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
-        }
-        
-        .info-title {
-            color: #00ffcc;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+
+        .overlay.hidden { display: none; }
+
+        .overlay-title {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: clamp(1.4rem, 4vw, 3rem);
+            letter-spacing: 4px;
             text-align: center;
-            border-bottom: 2px solid #00aaff;
-            padding-bottom: 8px;
-            text-shadow: 0 0 8px rgba(0, 255, 204, 0.7);
-        }
-        
-        .instructions {
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-        
-        .instructions p {
-            margin-bottom: 10px;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-            margin-bottom: 15px;
-        }
-        
-        .instructions li {
             margin-bottom: 8px;
-            color: #ccccff;
         }
-        
-        .button-container {
+
+        .overlay-sub {
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .countdown-num {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: clamp(4rem, 12vw, 9rem);
+            line-height: 1;
+            animation: countPulse 1s ease-out;
+        }
+
+        @keyframes countPulse {
+            from { transform: scale(1.6); opacity: 0.3; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+
+        /* RESPAWN OVERLAY per side */
+        .respawn-msg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(0.5rem, 1.5vw, 0.9rem);
+            font-weight: 700;
+            letter-spacing: 2px;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+            transition: opacity 0.15s;
+        }
+
+        /* INSTRUCTIONS */
+        .info-card {
+            width: 100%;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .info-toggle {
+            width: 100%;
+            padding: 10px 20px;
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .restart-btn {
-            padding: 12px;
-            background: linear-gradient(45deg, #ff3366, #ff0044);
-            color: white;
+            align-items: center;
+            justify-content: space-between;
+            background: none;
             border: none;
-            border-radius: 6px;
-            font-size: 1.2rem;
-            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
+            color: var(--accent);
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 2px;
         }
-        
-        .restart-btn:hover {
-            background: linear-gradient(45deg, #ff0044, #cc0033);
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255, 0, 68, 0.8);
+
+        .info-toggle .arrow {
+            transition: transform 0.3s;
+            font-size: 0.7rem;
         }
-        
-        .sound-toggle {
-            padding: 12px;
-            background: linear-gradient(45deg, #3366ff, #0044ff);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 15px rgba(51, 102, 255, 0.6);
-            transition: all 0.3s;
+
+        .info-toggle.open .arrow { transform: rotate(180deg); }
+
+        .info-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
         }
-        
-        .sound-toggle:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(0, 68, 255, 0.8);
+
+        .info-body.open { max-height: 300px; }
+
+        .info-inner {
+            padding: 4px 20px 16px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 24px;
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: #aabbdd;
         }
-        
-        /* Responsiveness - same as the previous version you liked */
-        @media (max-width: 950px) {
-            .game-section,
-            .game-header,
-            .health-display,
-            .game-status,
-            .info-section {
-                width: 95vw;
-            }
-            
-            .game-container {
-                width: 95vw;
-                height: 50vh;
-            }
-            
-            h1 {
-                font-size: 2.2rem;
-            }
+
+        .info-inner strong { color: var(--accent); }
+
+        .ctrl-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-wrap: wrap;
         }
-        
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
+
+        kbd {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 3px;
+            padding: 1px 6px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.75rem;
+            color: #eee;
+        }
+
+        @media (max-width: 600px) {
+            .info-inner { grid-template-columns: 1fr; }
+            h1 { letter-spacing: 3px; }
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="game-header">
-            <h1>SPACE DUEL</h1>
+<div class="main-container">
+
+    <!-- HEADER -->
+    <div class="game-header">
+        <h1>SPACE <span>DUEL</span></h1>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+        <button class="btn btn-restart" id="restart-btn">⟳ RESTART</button>
+        <button class="btn btn-sound" id="sound-toggle">🔊 SOUND: ON</button>
+    </div>
+
+    <!-- SCORE STRIP -->
+    <div class="score-strip">
+        <div class="score-block">
+            <div class="player-tag tag-1">P1</div>
+            <div class="score-val" id="score-1">0</div>
         </div>
-        
-        <div class="game-section">
-            <div class="game-container">
-                <div class="split-screen">
-                    <div class="player-area">
-                        <canvas id="canvas-player1" class="game-canvas"></canvas>
-                    </div>
-                    <div class="divider"></div>
-                    <div class="player-area">
-                        <canvas id="canvas-player2" class="game-canvas"></canvas>
-                    </div>
+        <div class="score-sep">FIRST TO 5</div>
+        <div class="score-block">
+            <div class="score-val" id="score-2">0</div>
+            <div class="player-tag tag-2">P2</div>
+        </div>
+    </div>
+
+    <!-- HEALTH BARS -->
+    <div class="health-row">
+        <div class="health-wrap">
+            <div class="health-bar-outer">
+                <div class="health-bar-inner h1" id="health-1" style="width:100%"></div>
+                <div class="health-label" id="health-text-1">100%</div>
+            </div>
+        </div>
+        <div class="health-sep">HP</div>
+        <div class="health-wrap">
+            <div class="health-bar-outer">
+                <div class="health-bar-inner h2" id="health-2" style="width:100%"></div>
+                <div class="health-label" id="health-text-2">100%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div class="game-wrap">
+        <div class="game-container">
+            <div class="split-screen">
+                <div class="player-area" id="area-1">
+                    <canvas id="canvas-player1" class="game-canvas"></canvas>
+                    <div class="respawn-msg" id="respawn-1" style="color:var(--p1)">RESPAWNING…</div>
+                </div>
+                <div class="divider"></div>
+                <div class="player-area" id="area-2">
+                    <canvas id="canvas-player2" class="game-canvas"></canvas>
+                    <div class="respawn-msg" id="respawn-2" style="color:var(--p2)">RESPAWNING…</div>
                 </div>
             </div>
-            
-            <div class="health-display">
-                <div class="health-wrapper">
-                    <div class="player-info">
-                        <div class="player-tag player-1-tag">PLAYER 1</div>
-                        <div class="score" id="score-1">0</div>
-                    </div>
-                    <div class="health-bar-outer">
-                        <div class="health-bar-inner health-1" id="health-1"></div>
-                        <div class="health-text" id="health-text-1">100%</div>
-                    </div>
-                </div>
-                
-                <div class="health-wrapper">
-                    <div class="player-info">
-                        <div class="score" id="score-2">0</div>
-                        <div class="player-tag player-2-tag">PLAYER 2</div>
-                    </div>
-                    <div class="health-bar-outer">
-                        <div class="health-bar-inner health-2" id="health-2"></div>
-                        <div class="health-text" id="health-text-2">100%</div>
-                    </div>
-                </div>
+
+            <!-- OVERLAY (countdown + win screen) -->
+            <div class="overlay hidden" id="overlay">
+                <div class="countdown-num" id="overlay-count" style="color:var(--accent)"></div>
+                <div class="overlay-title" id="overlay-title"></div>
+                <div class="overlay-sub" id="overlay-sub"></div>
             </div>
-            
-            <div class="game-status" id="game-status"></div>
         </div>
-        
-        <div class="info-section">
-            <div class="info-card">
-                <div class="info-title">HOW TO PLAY</div>
-                <div class="instructions">
-                    <p><strong>Two players battle on the same computer.</strong> First to 5 points wins!</p>
-                    <ul>
-                        <li>Shoot to reduce opponent's health</li>
-                        <li>If ship is destroyed you lose and respawn</li>
-                        <li><strong>Player 1 controls:</strong> W A S D SPACEBAR</li>
-                        <li><strong>Player 2 controls:</strong> ↑ ↓ ← → ENTER</li>
-                    </ul>
-                    <div class="button-container">
-                        <button class="restart-btn" id="restart-btn">RESTART GAME</button>
-                        <button class="sound-toggle" id="sound-toggle">SOUND: ON</button>
-                    </div>
+    </div>
+
+    <!-- INSTRUCTIONS (collapsible) -->
+    <div class="info-card">
+        <button class="info-toggle" id="info-toggle">
+            <span>HOW TO PLAY</span>
+            <span class="arrow">▼</span>
+        </button>
+        <div class="info-body" id="info-body">
+            <div class="info-inner">
+                <div>
+                    <strong>PLAYER 1</strong><br>
+                    <div class="ctrl-row">Move: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+                    <div class="ctrl-row">Shoot: <kbd>SPACE</kbd></div>
+                </div>
+                <div>
+                    <strong>PLAYER 2</strong><br>
+                    <div class="ctrl-row">Move: <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></div>
+                    <div class="ctrl-row">Shoot: <kbd>ENTER</kbd></div>
+                </div>
+                <div style="grid-column:1/-1;margin-top:4px;color:#8899aa;font-size:0.78rem">
+                    Each kill = 1 point. First to 5 points wins. Ships respawn with brief invincibility after destruction.
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Game configuration
-        const config = {
-            playerSpeed: 6,
-            projectileSpeed: 10,
-            fireCooldown: 15,
-            maxHealth: 100,
-            respawnTime: 60,
-            pointsToWin: 5,
-            starCount: 100
-        };
+</div>
 
-        // Fixed canvas dimensions
-        const FIXED_WIDTH = 1200;
-        const FIXED_HEIGHT = 500;
+<script>
+// ─────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────
+const CFG = {
+    playerSpeed:    6,
+    projectileSpeed:10,
+    fireCooldown:   15,
+    maxHealth:      100,
+    respawnTime:    90,         // frames
+    invincibleTime: 90,         // frames of immunity after respawn
+    pointsToWin:    5,
+    starCount:      90,
+    damagePerHit:   25,
+};
 
-        let gameState = {};
-        let soundEnabled = true;
-        let animations = [];
-        let audioContext = null;
+// Logical canvas size (split into halves per canvas)
+const LW = 1200, LH = 500;
 
-        const canvas1 = document.getElementById('canvas-player1');
-        const canvas2 = document.getElementById('canvas-player2');
-        const ctx1 = canvas1.getContext('2d');
-        const ctx2 = canvas2.getContext('2d');
+// ─────────────────────────────────────────────
+// DOM REFS
+// ─────────────────────────────────────────────
+const canvas1   = document.getElementById('canvas-player1');
+const canvas2   = document.getElementById('canvas-player2');
+const ctx1      = canvas1.getContext('2d');
+const ctx2      = canvas2.getContext('2d');
+const hBar1     = document.getElementById('health-1');
+const hBar2     = document.getElementById('health-2');
+const hTxt1     = document.getElementById('health-text-1');
+const hTxt2     = document.getElementById('health-text-2');
+const score1El  = document.getElementById('score-1');
+const score2El  = document.getElementById('score-2');
+const overlay   = document.getElementById('overlay');
+const ovCount   = document.getElementById('overlay-count');
+const ovTitle   = document.getElementById('overlay-title');
+const ovSub     = document.getElementById('overlay-sub');
+const respawn1  = document.getElementById('respawn-1');
+const respawn2  = document.getElementById('respawn-2');
+const restartBtn= document.getElementById('restart-btn');
+const soundBtn  = document.getElementById('sound-toggle');
+const infoToggle= document.getElementById('info-toggle');
+const infoBody  = document.getElementById('info-body');
 
-        // Set fixed canvas sizes
-        canvas1.width = FIXED_WIDTH/2;
-        canvas1.height = FIXED_HEIGHT;
-        canvas2.width = FIXED_WIDTH/2;
-        canvas2.height = FIXED_HEIGHT;
+canvas1.width  = LW / 2;  canvas1.height = LH;
+canvas2.width  = LW / 2;  canvas2.height = LH;
 
-        const healthBar1 = document.getElementById('health-1');
-        const healthBar2 = document.getElementById('health-2');
-        const healthText1 = document.getElementById('health-text-1');
-        const healthText2 = document.getElementById('health-text-2');
-        const score1 = document.getElementById('score-1');
-        const score2 = document.getElementById('score-2');
-        const gameStatus = document.getElementById('game-status');
-        const restartBtn = document.getElementById('restart-btn');
-        const soundToggle = document.getElementById('sound-toggle');
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let gs = {};
+let stars = [];
+let animations = [];
+let soundEnabled = true;
+let audioCtx = null;
+let rafId = null;
+let countdownActive = false;
 
-        function initAudioContext() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            return audioContext;
-        }
+// Derived sizes (computed once)
+let PSIZE, PSIZE_PROJ;
 
-        function playSound(freqStart, freqEnd, duration, volume = 0.07, type = 'sawtooth') {
-            if (!soundEnabled) return;
-            const ctx = initAudioContext();
-            if (!ctx || ctx.state === 'suspended') return;
+function computeSizes() {
+    PSIZE      = Math.max(20, Math.min(LW, LH) / 35);
+    PSIZE_PROJ = PSIZE / 5;
+}
 
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freqStart, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(freqEnd, ctx.currentTime + duration);
-            gain.gain.setValueAtTime(volume, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+function makePlayer(x, y, color) {
+    return {
+        x, y, color,
+        health: CFG.maxHealth,
+        cooldown: 0,
+        isAlive: true,
+        respawnTimer: 0,
+        invincible: 0,
+        score: 0,
+        keys: { up:false, down:false, left:false, right:false, shoot:false }
+    };
+}
 
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + duration);
-        }
-
-        function createShootSound() { playSound(1200, 300, 0.08, 0.08); }
-        function createHitSound() { playSound(400, 150, 0.06, 0.06, 'sine'); }
-        function createExplosionSound() {
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => playSound(200 + i*80, 50, 0.3, 0.04, 'square'), i*30);
-            }
-        }
-
-        function createHitAnimation(x, y, color) {
-            animations.push({ type: 'hit', x, y, color, radius: 12, maxRadius: 35, life: 20, currentLife: 20 });
-        }
-
-        function createExplosionAnimation(x, y) {
-            for (let i = 0; i < 20; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 2 + Math.random() * 5;
-                animations.push({
-                    type: 'explosion',
-                    x, y,
-                    dx: Math.cos(angle) * speed,
-                    dy: Math.sin(angle) * speed,
-                    color: ['#ffaa00', '#ff6600', '#ffff00'][Math.floor(Math.random() * 3)],
-                    radius: 3 + Math.random() * 6,
-                    life: 30,
-                    currentLife: 30
-                });
-            }
-        }
-
-        function updateAnimations() {
-            for (let i = animations.length - 1; i >= 0; i--) {
-                const a = animations[i];
-                a.currentLife--;
-                if (a.type === 'explosion') {
-                    a.x += a.dx; a.y += a.dy;
-                    a.dx *= 0.95; a.dy *= 0.95;
-                }
-                if (a.currentLife <= 0) animations.splice(i, 1);
-            }
-        }
-
-        function drawAnimations(ctx, isPlayer1) {
-            animations.forEach(a => {
-                const inView = isPlayer1 ? a.x <= FIXED_WIDTH/2 : a.x > FIXED_WIDTH/2;
-                if (!inView) return;
-                const drawX = isPlayer1 ? a.x : a.x - FIXED_WIDTH/2;
-
-                ctx.save();
-                ctx.globalAlpha = a.currentLife / a.life;
-
-                if (a.type === 'hit') {
-                    ctx.strokeStyle = a.color;
-                    ctx.lineWidth = 3;
-                    const r = a.maxRadius * (a.currentLife / a.life);
-                    ctx.beginPath(); ctx.arc(drawX, a.y, r, 0, Math.PI*2); ctx.stroke();
-                    ctx.beginPath(); ctx.arc(drawX, a.y, r/2, 0, Math.PI*2); ctx.stroke();
-                } else {
-                    ctx.fillStyle = a.color;
-                    ctx.shadowColor = a.color;
-                    ctx.shadowBlur = 15;
-                    ctx.beginPath(); ctx.arc(drawX, a.y, a.radius, 0, Math.PI*2); ctx.fill();
-                }
-                ctx.restore();
-            });
-        }
-
-        function drawFlickeringStars(ctx, isPlayer1) {
-            ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < config.starCount; i++) {
-                const x = Math.random() * (FIXED_WIDTH / 2);
-                const y = Math.random() * FIXED_HEIGHT;
-                const size = 1 + Math.random() * 2;
-                ctx.globalAlpha = 0.5 + Math.random() * 0.5;
-                ctx.beginPath();
-                ctx.arc(x, y, size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-        }
-
-        function initGame() {
-            config.canvasWidth = FIXED_WIDTH;
-            config.canvasHeight = FIXED_HEIGHT;
-
-            const baseSize = Math.min(config.canvasWidth, config.canvasHeight);
-            config.playerSize = Math.max(20, baseSize / 35);
-            config.projectileSize = config.playerSize / 5;
-
-            gameState = {
-                player1: {
-                    x: config.canvasWidth / 4,
-                    y: config.canvasHeight / 2,
-                    health: config.maxHealth,
-                    color: '#ff3366',
-                    cooldown: 0,
-                    isAlive: true,
-                    respawnTimer: 0,
-                    score: 0,
-                    keys: { up: false, down: false, left: false, right: false, shoot: false }
-                },
-                player2: {
-                    x: config.canvasWidth * 3/4,
-                    y: config.canvasHeight / 2,
-                    health: config.maxHealth,
-                    color: '#3366ff',
-                    cooldown: 0,
-                    isAlive: true,
-                    respawnTimer: 0,
-                    score: 0,
-                    keys: { up: false, down: false, left: false, right: false, shoot: false }
-                },
-                projectiles: [],
-                gameRunning: true,
-                winner: null
-            };
-
-            animations = [];
-            updateHealthBars();
-            updateScoreDisplay();
-            updateGameStatus();
-        }
-
-        function updateHealthBars() {
-            const p1 = gameState.player1.health;
-            const p2 = gameState.player2.health;
-            healthBar1.style.width = `${p1}%`;
-            healthBar2.style.width = `${p2}%`;
-            healthText1.textContent = `${p1}%`;
-            healthText2.textContent = `${p2}%`;
-        }
-
-        function updateScoreDisplay() {
-            score1.textContent = gameState.player1.score;
-            score2.textContent = gameState.player2.score;
-        }
-
-        function updateGameStatus() {
-            if (gameState.winner) {
-                gameStatus.textContent = `PLAYER ${gameState.winner} WINS THE MATCH!`;
-                gameStatus.style.color = gameState.winner === 1 ? '#ff3366' : '#3366ff';
-            } else if (!gameState.gameRunning) {
-                gameStatus.textContent = "GAME OVER!";
-                gameStatus.style.color = '#ffff66';
-            } else {
-                gameStatus.textContent = `Player 1: ${gameState.player1.score} | Player 2: ${gameState.player2.score}`;
-                gameStatus.style.color = '#ffff66';
-            }
-        }
-
-        function drawShip(ctx, player, isPlayer1) {
-            if (!player.isAlive) return;
-            ctx.save();
-            ctx.shadowColor = player.color;
-            ctx.shadowBlur = 15;
-            ctx.fillStyle = player.color;
-
-            if (isPlayer1) {
-                ctx.beginPath();
-                ctx.moveTo(player.x + config.playerSize, player.y);
-                ctx.lineTo(player.x - config.playerSize, player.y - config.playerSize/2);
-                ctx.lineTo(player.x - config.playerSize, player.y + config.playerSize/2);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.fillStyle = '#ffff99';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(player.x - config.playerSize/2, player.y, config.playerSize/4, 0, Math.PI*2);
-                ctx.fill();
-            } else {
-                ctx.beginPath();
-                ctx.moveTo(player.x - config.playerSize, player.y);
-                ctx.lineTo(player.x + config.playerSize, player.y - config.playerSize/2);
-                ctx.lineTo(player.x + config.playerSize, player.y + config.playerSize/2);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.fillStyle = '#ffff99';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(player.x + config.playerSize/2, player.y, config.playerSize/4, 0, Math.PI*2);
-                ctx.fill();
-            }
-
-            if (player.keys.up || player.keys.down || player.keys.left || player.keys.right) {
-                ctx.shadowBlur = 20;
-                ctx.fillStyle = '#ffff00';
-                const engineX = isPlayer1 ? player.x - config.playerSize : player.x + config.playerSize;
-                ctx.beginPath();
-                ctx.ellipse(engineX, player.y, config.playerSize/2, config.playerSize/4, 0, 0, Math.PI*2);
-                ctx.fill();
-            }
-            ctx.restore();
-        }
-
-        function drawProjectile(ctx, p) {
-            ctx.save();
-            ctx.fillStyle = p.color;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, config.projectileSize, 0, Math.PI*2);
-            ctx.fill();
-            ctx.fillStyle = '#ffff99';
-            ctx.beginPath();
-            ctx.arc(p.x - p.dx*0.4, p.y, config.projectileSize/2, 0, Math.PI*2);
-            ctx.fill();
-            ctx.restore();
-        }
-
-        function drawGame(ctx, isPlayer1) {
-            ctx.fillStyle = '#000022';
-            ctx.fillRect(0, 0, FIXED_WIDTH/2, FIXED_HEIGHT);
-
-            drawFlickeringStars(ctx, isPlayer1);
-
-            gameState.projectiles.forEach(p => {
-                const inView = isPlayer1 ? p.x <= FIXED_WIDTH/2 : p.x > FIXED_WIDTH/2;
-                if (inView) {
-                    const drawX = isPlayer1 ? p.x : p.x - FIXED_WIDTH/2;
-                    drawProjectile(ctx, { ...p, x: drawX });
-                }
-            });
-
-            drawAnimations(ctx, isPlayer1);
-
-            if (isPlayer1) {
-                drawShip(ctx, gameState.player1, true);
-            } else {
-                const p2 = { ...gameState.player2, x: gameState.player2.x - FIXED_WIDTH/2 };
-                drawShip(ctx, p2, false);
-            }
-        }
-
-        function updatePlayer(player, isPlayer1) {
-            if (!player.isAlive) return;
-
-            const vel = { x: 0, y: 0 };
-            if (player.keys.up) vel.y = -config.playerSpeed;
-            if (player.keys.down) vel.y = config.playerSpeed;
-            if (player.keys.left) vel.x = -config.playerSpeed;
-            if (player.keys.right) vel.x = config.playerSpeed;
-
-            player.x += vel.x;
-            player.y += vel.y;
-
-            const middle = FIXED_WIDTH / 2;
-            if (isPlayer1) {
-                player.x = Math.max(config.playerSize, Math.min(middle - config.playerSize, player.x));
-            } else {
-                player.x = Math.max(middle + config.playerSize, Math.min(FIXED_WIDTH - config.playerSize, player.x));
-            }
-            player.y = Math.max(config.playerSize, Math.min(FIXED_HEIGHT - config.playerSize, player.y));
-
-            if (player.keys.shoot && player.cooldown <= 0) {
-                gameState.projectiles.push({
-                    x: isPlayer1 ? player.x + config.playerSize : player.x - config.playerSize,
-                    y: player.y,
-                    dx: isPlayer1 ? config.projectileSpeed : -config.projectileSpeed,
-                    dy: 0,
-                    color: player.color,
-                    owner: isPlayer1 ? 'player1' : 'player2'
-                });
-                createShootSound();
-                player.cooldown = config.fireCooldown;
-            }
-        }
-
-        function updateProjectiles() {
-            for (let i = gameState.projectiles.length - 1; i >= 0; i--) {
-                const p = gameState.projectiles[i];
-                p.x += p.dx;
-
-                if (p.x < 0 || p.x > FIXED_WIDTH) {
-                    gameState.projectiles.splice(i, 1);
-                    continue;
-                }
-
-                const target = p.owner === 'player1' ? gameState.player2 : gameState.player1;
-                if (target.isAlive && target.health > 0) {
-                    const dx = p.x - target.x;
-                    const dy = p.y - target.y;
-                    if (Math.sqrt(dx*dx + dy*dy) < config.playerSize + config.projectileSize) {
-                        target.health -= 25;
-                        gameState.projectiles.splice(i, 1);
-                        createHitAnimation(p.x, p.y, target.color);
-                        createHitSound();
-
-                        if (target.health <= 0) {
-                            target.isAlive = false;
-                            target.respawnTimer = config.respawnTime;
-                            (p.owner === 'player1' ? gameState.player1 : gameState.player2).score++;
-                            createExplosionAnimation(target.x, target.y);
-                            createExplosionSound();
-                        }
-                    }
-                }
-            }
-        }
-
-        function updateGame() {
-            if (!gameState.gameRunning) return;
-
-            updatePlayer(gameState.player1, true);
-            updatePlayer(gameState.player2, false);
-
-            gameState.player1.cooldown = Math.max(0, gameState.player1.cooldown - 1);
-            gameState.player2.cooldown = Math.max(0, gameState.player2.cooldown - 1);
-
-            if (!gameState.player1.isAlive) {
-                gameState.player1.respawnTimer--;
-                if (gameState.player1.respawnTimer <= 0) {
-                    gameState.player1.isAlive = true;
-                    gameState.player1.health = config.maxHealth;
-                    gameState.player1.x = FIXED_WIDTH / 4;
-                    gameState.player1.y = FIXED_HEIGHT / 2;
-                }
-            }
-            if (!gameState.player2.isAlive) {
-                gameState.player2.respawnTimer--;
-                if (gameState.player2.respawnTimer <= 0) {
-                    gameState.player2.isAlive = true;
-                    gameState.player2.health = config.maxHealth;
-                    gameState.player2.x = FIXED_WIDTH * 3/4;
-                    gameState.player2.y = FIXED_HEIGHT / 2;
-                }
-            }
-
-            updateProjectiles();
-            updateAnimations();
-
-            if (gameState.player1.score >= config.pointsToWin) { gameState.winner = 1; gameState.gameRunning = false; }
-            if (gameState.player2.score >= config.pointsToWin) { gameState.winner = 2; gameState.gameRunning = false; }
-
-            updateHealthBars();
-            updateScoreDisplay();
-            updateGameStatus();
-        }
-
-        function gameLoop() {
-            updateGame();
-            drawGame(ctx1, true);
-            drawGame(ctx2, false);
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Concise fix: only prevent scroll on arrow keys (the only ones causing issues)
-        const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
-
-        document.addEventListener('keydown', e => {
-            if (arrowKeys.includes(e.key)) e.preventDefault();
-
-            if (['w','W'].includes(e.key)) gameState.player1.keys.up = true;
-            if (['s','S'].includes(e.key)) gameState.player1.keys.down = true;
-            if (['a','A'].includes(e.key)) gameState.player1.keys.left = true;
-            if (['d','D'].includes(e.key)) gameState.player1.keys.right = true;
-            if (e.key === ' ') { gameState.player1.keys.shoot = true; e.preventDefault(); }
-
-            if (e.key === 'ArrowUp') gameState.player2.keys.up = true;
-            if (e.key === 'ArrowDown') gameState.player2.keys.down = true;
-            if (e.key === 'ArrowLeft') gameState.player2.keys.left = true;
-            if (e.key === 'ArrowRight') gameState.player2.keys.right = true;
-            if (e.key === 'Enter') { gameState.player2.keys.shoot = true; e.preventDefault(); }
+function generateStars() {
+    stars = [];
+    // each star stored in logical coords of its half
+    for (let i = 0; i < CFG.starCount; i++) {
+        stars.push({
+            x:    Math.random() * (LW / 2),
+            y:    Math.random() * LH,
+            r:    0.5 + Math.random() * 1.5,
+            base: 0.3 + Math.random() * 0.7,
+            twinkleSpeed: 0.02 + Math.random() * 0.04,
+            twinklePhase: Math.random() * Math.PI * 2,
         });
+    }
+}
 
-        document.addEventListener('keyup', e => {
-            if (arrowKeys.includes(e.key)) e.preventDefault();
+function initGame() {
+    computeSizes();
+    generateStars();
+    animations = [];
 
-            if (['w','W'].includes(e.key)) gameState.player1.keys.up = false;
-            if (['s','S'].includes(e.key)) gameState.player1.keys.down = false;
-            if (['a','A'].includes(e.key)) gameState.player1.keys.left = false;
-            if (['d','D'].includes(e.key)) gameState.player1.keys.right = false;
-            if (e.key === ' ') gameState.player1.keys.shoot = false;
+    gs = {
+        player1:     makePlayer(LW / 4,      LH / 2, '#ff3366'),
+        player2:     makePlayer(LW * 3 / 4,  LH / 2, '#33aaff'),
+        projectiles: [],
+        gameRunning: false,  // starts after countdown
+        winner:      null,
+        frame:       0,
+    };
 
-            if (e.key === 'ArrowUp') gameState.player2.keys.up = false;
-            if (e.key === 'ArrowDown') gameState.player2.keys.down = false;
-            if (e.key === 'ArrowLeft') gameState.player2.keys.left = false;
-            if (e.key === 'ArrowRight') gameState.player2.keys.right = false;
-            if (e.key === 'Enter') gameState.player2.keys.shoot = false;
+    // Keep scores across restart only for the match — reset for fresh start
+    updateHUD();
+    startCountdown();
+}
+
+// ─────────────────────────────────────────────
+// COUNTDOWN
+// ─────────────────────────────────────────────
+let countdownGen = 0; // increments each restart to cancel stale countdowns
+
+function startCountdown() {
+    countdownActive = true;
+    showOverlay('', '', '');
+    const gen = ++countdownGen;
+    let n = 3;
+
+    function cdTick() {
+        if (gen !== countdownGen) return; // stale countdown, abort
+        if (n > 0) {
+            ovCount.textContent = n;
+            ovCount.style.color = n === 3 ? '#ff3366' : n === 2 ? '#ffee44' : '#00ffcc';
+            ovCount.style.animation = 'none';
+            void ovCount.offsetWidth;
+            ovCount.style.animation = 'countPulse 1s ease-out';
+            ovTitle.textContent = '';
+            ovSub.textContent = '';
+            n--;
+            setTimeout(cdTick, 1000);
+        } else {
+            ovCount.textContent = 'GO!';
+            ovCount.style.color = '#00ffcc';
+            ovCount.style.animation = 'none';
+            void ovCount.offsetWidth;
+            ovCount.style.animation = 'countPulse 0.6s ease-out';
+            setTimeout(() => {
+                if (gen !== countdownGen) return;
+                hideOverlay();
+                gs.gameRunning = true;
+                countdownActive = false;
+            }, 600);
+        }
+    }
+    cdTick();
+}
+
+function showOverlay(count, title, sub) {
+    overlay.classList.remove('hidden');
+    ovCount.textContent = count;
+    ovTitle.textContent = title;
+    ovSub.textContent   = sub;
+}
+
+function hideOverlay() {
+    overlay.classList.add('hidden');
+}
+
+function showWinScreen(winner) {
+    const color = winner === 1 ? '#ff3366' : '#33aaff';
+    ovCount.textContent = '';
+    ovTitle.textContent = `PLAYER ${winner} WINS!`;
+    ovTitle.style.color = color;
+    ovSub.textContent   = 'Press RESTART to play again';
+    overlay.classList.remove('hidden');
+}
+
+// ─────────────────────────────────────────────
+// AUDIO
+// ─────────────────────────────────────────────
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freqA, freqB, dur, vol=0.07, type='sawtooth') {
+    if (!soundEnabled) return;
+    try {
+        initAudio();
+        if (!audioCtx) return;
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freqA, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freqB, audioCtx.currentTime + dur);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch(e) {}
+}
+
+const sndShoot    = () => playTone(1200, 300, 0.08, 0.08);
+const sndHit      = () => playTone(400, 150, 0.06, 0.06, 'sine');
+const sndExplode  = () => { for(let i=0;i<3;i++) setTimeout(()=>playTone(200+i*80,50,0.3,0.04,'square'),i*30); };
+
+// ─────────────────────────────────────────────
+// ANIMATIONS
+// ─────────────────────────────────────────────
+function spawnHit(x, y, color) {
+    animations.push({ type:'hit', x, y, color, maxR:35, life:20, cur:20 });
+}
+
+function spawnExplosion(x, y) {
+    for (let i=0;i<24;i++) {
+        const ang = Math.random()*Math.PI*2;
+        const spd = 2 + Math.random()*6;
+        animations.push({
+            type:'exp', x, y,
+            dx: Math.cos(ang)*spd, dy: Math.sin(ang)*spd,
+            color: ['#ffaa00','#ff6600','#ffff00','#ff4400'][Math.floor(Math.random()*4)],
+            r: 2.5 + Math.random()*5,
+            life:35, cur:35,
         });
+    }
+}
 
-        restartBtn.addEventListener('click', initGame);
-        soundToggle.addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            soundToggle.textContent = soundEnabled ? 'SOUND: ON' : 'SOUND: OFF';
-            soundToggle.style.background = soundEnabled
-                ? 'linear-gradient(45deg, #3366ff, #0044ff)'
-                : 'linear-gradient(45deg, #666, #444)';
+function updateAnims() {
+    for (let i=animations.length-1;i>=0;i--) {
+        const a = animations[i];
+        a.cur--;
+        if (a.type==='exp') { a.x+=a.dx; a.y+=a.dy; a.dx*=0.93; a.dy*=0.93; }
+        if (a.cur <= 0) animations.splice(i,1);
+    }
+}
+
+function drawAnims(ctx, isP1) {
+    animations.forEach(a => {
+        const inView = isP1 ? a.x <= LW/2 : a.x > LW/2;
+        if (!inView) return;
+        const dx = isP1 ? a.x : a.x - LW/2;
+        ctx.save();
+        ctx.globalAlpha = a.cur / a.life;
+        if (a.type==='hit') {
+            ctx.strokeStyle = a.color; ctx.lineWidth = 3;
+            const r = a.maxR * (a.cur/a.life);
+            ctx.shadowColor = a.color; ctx.shadowBlur = 12;
+            ctx.beginPath(); ctx.arc(dx, a.y, r, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(dx, a.y, r/2, 0, Math.PI*2); ctx.stroke();
+        } else {
+            ctx.fillStyle = a.color; ctx.shadowColor = a.color; ctx.shadowBlur = 18;
+            ctx.beginPath(); ctx.arc(dx, a.y, a.r, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+    });
+}
+
+// ─────────────────────────────────────────────
+// DRAWING
+// ─────────────────────────────────────────────
+function drawStars(ctx) {
+    const t = gs.frame * 0.016;
+    stars.forEach(s => {
+        const alpha = s.base + 0.2 * Math.sin(t * s.twinkleSpeed * 60 + s.twinklePhase);
+        ctx.globalAlpha = Math.max(0.05, Math.min(1, alpha));
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+}
+
+function drawShip(ctx, player, isP1) {
+    if (!player.isAlive) return;
+
+    // Invincibility flicker
+    if (player.invincible > 0 && Math.floor(player.invincible / 5) % 2 === 0) return;
+
+    ctx.save();
+    ctx.shadowColor = player.color; ctx.shadowBlur = 18;
+    ctx.fillStyle = player.color;
+
+    const {x, y} = player;
+    if (isP1) {
+        ctx.beginPath();
+        ctx.moveTo(x + PSIZE, y);
+        ctx.lineTo(x - PSIZE, y - PSIZE/2);
+        ctx.lineTo(x - PSIZE, y + PSIZE/2);
+        ctx.closePath(); ctx.fill();
+        // cockpit
+        ctx.fillStyle = '#ffffaa'; ctx.shadowBlur = 6;
+        ctx.beginPath(); ctx.arc(x - PSIZE/2, y, PSIZE/4, 0, Math.PI*2); ctx.fill();
+    } else {
+        ctx.beginPath();
+        ctx.moveTo(x - PSIZE, y);
+        ctx.lineTo(x + PSIZE, y - PSIZE/2);
+        ctx.lineTo(x + PSIZE, y + PSIZE/2);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#ffffaa'; ctx.shadowBlur = 6;
+        ctx.beginPath(); ctx.arc(x + PSIZE/2, y, PSIZE/4, 0, Math.PI*2); ctx.fill();
+    }
+
+    // Engine glow when moving
+    const moving = player.keys.up||player.keys.down||player.keys.left||player.keys.right;
+    if (moving) {
+        ctx.shadowBlur = 25; ctx.fillStyle = '#ffdd00';
+        const ex = isP1 ? x - PSIZE : x + PSIZE;
+        ctx.beginPath(); ctx.ellipse(ex, y, PSIZE/2, PSIZE/4, 0, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+}
+
+function drawProjectile(ctx, p) {
+    ctx.save();
+    ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 15;
+    ctx.beginPath(); ctx.arc(p.x, p.y, PSIZE_PROJ*1.4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ffffcc'; ctx.shadowBlur = 4;
+    ctx.beginPath(); ctx.arc(p.x - p.dx*0.4, p.y, PSIZE_PROJ*0.7, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+}
+
+function drawSide(ctx, isP1) {
+    // Background
+    ctx.fillStyle = '#000018';
+    ctx.fillRect(0, 0, LW/2, LH);
+
+    // Subtle nebula gradient
+    const grad = ctx.createRadialGradient(LW/4, LH/2, 0, LW/4, LH/2, LW/3);
+    grad.addColorStop(0, isP1 ? 'rgba(255,20,60,0.04)' : 'rgba(30,100,255,0.04)');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,LW/2,LH);
+
+    drawStars(ctx);
+
+    // Projectiles visible in this half
+    gs.projectiles.forEach(p => {
+        const inView = isP1 ? p.x <= LW/2 : p.x > LW/2;
+        if (!inView) return;
+        const drawX = isP1 ? p.x : p.x - LW/2;
+        drawProjectile(ctx, {...p, x:drawX});
+    });
+
+    drawAnims(ctx, isP1);
+
+    if (isP1) {
+        drawShip(ctx, gs.player1, true);
+    } else {
+        drawShip(ctx, {...gs.player2, x: gs.player2.x - LW/2}, false);
+    }
+}
+
+// ─────────────────────────────────────────────
+// UPDATE
+// ─────────────────────────────────────────────
+function updatePlayer(player, isP1) {
+    player.cooldown = Math.max(0, player.cooldown - 1);
+    if (player.invincible > 0) player.invincible--;
+
+    if (!player.isAlive) {
+        player.respawnTimer--;
+        if (player.respawnTimer <= 0) {
+            player.isAlive    = true;
+            player.health     = CFG.maxHealth;
+            player.invincible = CFG.invincibleTime;
+            player.x = isP1 ? LW/4 : LW*3/4;
+            player.y = LH/2;
+            player.keys = { up:false, down:false, left:false, right:false, shoot:false };
+        }
+        return;
+    }
+
+    let vx=0, vy=0;
+    if (player.keys.up)    vy = -CFG.playerSpeed;
+    if (player.keys.down)  vy =  CFG.playerSpeed;
+    if (player.keys.left)  vx = -CFG.playerSpeed;
+    if (player.keys.right) vx =  CFG.playerSpeed;
+
+    // Diagonal normalisation
+    if (vx !== 0 && vy !== 0) { vx *= 0.707; vy *= 0.707; }
+
+    player.x += vx; player.y += vy;
+
+    const mid = LW/2;
+    if (isP1) {
+        player.x = Math.max(PSIZE, Math.min(mid - PSIZE, player.x));
+    } else {
+        player.x = Math.max(mid + PSIZE, Math.min(LW - PSIZE, player.x));
+    }
+    player.y = Math.max(PSIZE, Math.min(LH - PSIZE, player.y));
+
+    if (player.keys.shoot && player.cooldown <= 0) {
+        // Slight aim toward opponent's current Y
+        const target = isP1 ? gs.player2 : gs.player1;
+        const dy = target.y - player.y;
+        const dist = Math.abs(target.x - player.x);
+        const aimDY = dist > 0 ? (dy / dist) * CFG.projectileSpeed * 0.4 : 0;
+
+        gs.projectiles.push({
+            x:     isP1 ? player.x + PSIZE : player.x - PSIZE,
+            y:     player.y,
+            dx:    isP1 ? CFG.projectileSpeed : -CFG.projectileSpeed,
+            dy:    aimDY,
+            color: player.color,
+            owner: isP1 ? 'p1' : 'p2',
         });
+        sndShoot();
+        player.cooldown = CFG.fireCooldown;
+    }
+}
 
-        document.addEventListener('click', () => initAudioContext(), { once: true });
-        document.addEventListener('keydown', () => initAudioContext(), { once: true });
+function updateProjectiles() {
+    for (let i=gs.projectiles.length-1; i>=0; i--) {
+        const p = gs.projectiles[i];
+        p.x += p.dx; p.y += p.dy;
 
-        initGame();
-        gameLoop();
-    </script>
+        if (p.x < 0 || p.x > LW || p.y < 0 || p.y > LH) {
+            gs.projectiles.splice(i,1); continue;
+        }
+
+        const target = p.owner==='p1' ? gs.player2 : gs.player1;
+        if (!target.isAlive || target.invincible > 0) continue;
+
+        const dx = p.x - target.x, dy = p.y - target.y;
+        if (Math.sqrt(dx*dx+dy*dy) < PSIZE + PSIZE_PROJ*1.4) {
+            target.health -= CFG.damagePerHit;
+            gs.projectiles.splice(i,1);
+            spawnHit(p.x, p.y, target.color);
+            sndHit();
+
+            if (target.health <= 0) {
+                target.isAlive = false;
+                target.respawnTimer = CFG.respawnTime;
+                (p.owner==='p1' ? gs.player1 : gs.player2).score++;
+                spawnExplosion(target.x, target.y);
+                sndExplode();
+                checkWin();
+            }
+        }
+    }
+}
+
+function checkWin() {
+    if (gs.player1.score >= CFG.pointsToWin) { gs.winner=1; gs.gameRunning=false; showWinScreen(1); }
+    if (gs.player2.score >= CFG.pointsToWin) { gs.winner=2; gs.gameRunning=false; showWinScreen(2); }
+}
+
+function updateHUD() {
+    const p1h = Math.max(0, gs.player1.health);
+    const p2h = Math.max(0, gs.player2.health);
+    hBar1.style.width  = p1h + '%';
+    hBar2.style.width  = p2h + '%';
+    hTxt1.textContent  = p1h + '%';
+    hTxt2.textContent  = p2h + '%';
+    score1El.textContent = gs.player1.score;
+    score2El.textContent = gs.player2.score;
+
+    // Respawn indicators
+    respawn1.style.opacity = gs.player1.isAlive ? '0' : '1';
+    respawn2.style.opacity = gs.player2.isAlive ? '0' : '1';
+}
+
+function gameLoop() {
+    gs.frame++;
+
+    if (gs.gameRunning) {
+        updatePlayer(gs.player1, true);
+        updatePlayer(gs.player2, false);
+        updateProjectiles();
+        updateAnims();
+        updateHUD();
+    } else {
+        updateAnims(); // keep particles going on win screen
+    }
+
+    drawSide(ctx1, true);
+    drawSide(ctx2, false);
+
+    rafId = requestAnimationFrame(gameLoop);
+}
+
+// ─────────────────────────────────────────────
+// INPUT  (lookup-table approach)
+// ─────────────────────────────────────────────
+const KEY_MAP = {
+    'w':         [1,'up'],    'W':         [1,'up'],
+    's':         [1,'down'],  'S':         [1,'down'],
+    'a':         [1,'left'],  'A':         [1,'left'],
+    'd':         [1,'right'], 'D':         [1,'right'],
+    ' ':         [1,'shoot'],
+    'ArrowUp':   [2,'up'],
+    'ArrowDown': [2,'down'],
+    'ArrowLeft': [2,'left'],
+    'ArrowRight':[2,'right'],
+    'Enter':     [2,'shoot'],
+};
+
+const SCROLL_KEYS = new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','Enter']);
+
+document.addEventListener('keydown', e => {
+    if (SCROLL_KEYS.has(e.key)) e.preventDefault();
+    const m = KEY_MAP[e.key];
+    if (!m) return;
+    const player = m[0]===1 ? gs.player1 : gs.player2;
+    if (player) player.keys[m[1]] = true;
+});
+
+document.addEventListener('keyup', e => {
+    if (SCROLL_KEYS.has(e.key)) e.preventDefault();
+    const m = KEY_MAP[e.key];
+    if (!m) return;
+    const player = m[0]===1 ? gs.player1 : gs.player2;
+    if (player) player.keys[m[1]] = false;
+});
+
+// ─────────────────────────────────────────────
+// CONTROLS
+// ─────────────────────────────────────────────
+restartBtn.addEventListener('click', () => {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    initGame();
+    gameLoop();
+});
+
+soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
+    initAudio();
+});
+
+infoToggle.addEventListener('click', () => {
+    const open = infoBody.classList.toggle('open');
+    infoToggle.classList.toggle('open', open);
+});
+
+// Init audio on first interaction
+['click','keydown'].forEach(ev =>
+    document.addEventListener(ev, () => { try { initAudio(); } catch(e){} }, { once:true })
+);
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+initGame();
+gameLoop();
+</script>
 </body>
 </html>
